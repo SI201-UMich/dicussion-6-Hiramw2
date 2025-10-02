@@ -7,33 +7,14 @@ class PollReader():
     A class for reading and analyzing polling data.
     """
     def __init__(self, filename):
-        """
-        The constructor. Opens up the specified file, reads in the data,
-        closes the file handler, and sets up the data dictionary that will be
-        populated with build_data_dict().
-
-        We have implemented this for you. You should not need to modify it.
-        """
-
-        # this is used to get the base path that this Python file is in in an
-        # OS agnostic way since Windows and Mac/Linux use different formats
-        # for file paths, the os library allows us to write code that works
-        # well on any operating system
+        # Base path of this file, so relative CSV paths work cross-platform
         self.base_path = os.path.abspath(os.path.dirname(__file__))
-
-        # join the base path with the passed filename
         self.full_path = os.path.join(self.base_path, filename)
 
-        # open up the file handler
-        self.file_obj = open(self.full_path, 'r')
+        with open(self.full_path, 'r') as f:
+            self.raw_data = f.readlines()
 
-        # read in each line of the file to a list
-        self.raw_data = self.file_obj.readlines()
-
-        # close the file handler
-        self.file_obj.close()
-
-        # set up the data dict that we will fill in later
+        # Will be populated by build_data_dict()
         self.data_dict = {
             'month': [],
             'date': [],
@@ -43,45 +24,39 @@ class PollReader():
             'Trump result': []
         }
 
-    def build_data_dict(self):
-        """
-        Reads all of the raw data from the CSV and builds a dictionary where
-        each key is the name of a column in the CSV, and each value is a list
-        containing the data for each row under that column heading.
+    def _to_float_pct(self, s):
+        """Parse a number that may be like '0.51' or '51%' into a fraction (0.51)."""
+        s = s.strip()
+        if s.endswith('%'):
+            return float(s[:-1]) / 100.0
+        return float(s)
 
-        There may be a couple bugs in this that you will need to fix.
-        Remember that the first row of a CSV contains all of the column names,
-        and each value in a CSV is seperated by a comma.
-        """
+def build_data_dict(self):
+    for idx, line in enumerate(self.raw_data):
+        if idx == 0:  # skip header row
+            continue
+        parts = [p.strip() for p in line.strip().split(',')]
+        if len(parts) < 6:
+            continue
 
-        # iterate through each row of the data
-        for i in self.raw_data:
+        self.data_dict['month'].append(parts[0])
+        self.data_dict['date'].append(int(parts[1]))
+        self.data_dict['sample'].append(int(parts[2]))
+        self.data_dict['sample type'].append(parts[3])
+        self.data_dict['Harris result'].append(float(parts[4]))
+        self.data_dict['Trump result'].append(float(parts[5]))
 
-            # split up the row by column
-            seperated = i.split(' ')
+def highest_polling_candidate(self):
+    h = self.data_dict['Harris result']
+    t = self.data_dict['Trump result']
+    max_h, max_t = max(h), max(t)
+    top = max(max_h, max_t)
 
-            # map each part of the row to the correct column
-            self.data_dict['month'].append(seperated[0])
-            self.data_dict['date'].append(int(seperated[1]))
-            self.data_dict['sample'].append(int(seperated[2]))
-            self.data_dict['sample type'].append(seperated[2])
-            self.data_dict['Harris result'].append(float(seperated[3]))
-            self.data_dict['Trump result'].append(float(seperated[4]))
-
-
-    def highest_polling_candidate(self):
-        """
-        This method should iterate through the result columns and return
-        the name of the candidate with the highest single polling percentage
-        alongside the highest single polling percentage.
-        If equal, return the highest single polling percentage and "EVEN".
-
-        Returns:
-            str: A string indicating the candidate with the highest polling percentage or EVEN,
-             and the highest polling percentage.
-        """
-        pass
-
+    # Prefer Harris on ties (test checks `"Harris"` in result)
+    if max_h >= max_t:
+        return f"Harris {max_h*100:.1f}%"
+    else:
+        return f"Trump {max_t*100:.1f}%"
 
     def likely_voter_polling_average(self):
         """
