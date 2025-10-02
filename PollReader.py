@@ -58,29 +58,19 @@ def highest_polling_candidate(self):
     else:
         return f"Trump {max_t*100:.1f}%"
 
-    def likely_voter_polling_average(self):
-        """
-        Calculate the average polling percentage for each candidate among likely voters.
+    def test_likely_voter_polling_average(self):
+        harris_avg, trump_avg = self.poll_reader.likely_voter_polling_average()
+        self.assertTrue(isinstance(harris_avg, float))
+        self.assertTrue(isinstance(trump_avg, float))
+        self.assertTrue(f"{harris_avg:.2%}" == "49.34%")
+        self.assertTrue(f"{trump_avg:.2%}" == "46.04%")
 
-        Returns:
-            tuple: A tuple containing the average polling percentages for Harris and Trump
-                   among likely voters, in that order.
-        """
-        pass
-
-
-    def polling_history_change(self):
-        """
-        Calculate the change in polling averages between the earliest and latest polls.
-
-        This method calculates the average result for each candidate in the earliest 30 polls
-        and the latest 30 polls, then returns the net change.
-
-        Returns:
-            tuple: A tuple containing the net change for Harris and Trump, in that order.
-                   Positive values indicate an increase, negative values indicate a decrease.
-        """
-        pass
+    def test_polling_history_change(self):
+        harris_change, trump_change = self.poll_reader.polling_history_change()
+        self.assertTrue(isinstance(harris_change, float))
+        self.assertTrue(isinstance(trump_change, float))
+        self.assertTrue(f"{harris_change:+.2%}" == "+1.53%")
+        self.assertTrue(f"{trump_change:+.2%}" == "+2.07%")
 
 
 class TestPollReader(unittest.TestCase):
